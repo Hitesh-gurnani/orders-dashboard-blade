@@ -42,7 +42,13 @@ Container::setInstance($container);
 
 $files = new Filesystem;
 $views = __DIR__ . '/../resources/views';
-$compiled = __DIR__ . '/../storage/framework/views';
+
+// Blade compiles templates to disk on first render, so the cache directory has
+// to be writable. Locally that is storage/framework/views; on a host with a
+// read-only filesystem it has to be somewhere under the temp directory. An
+// environment variable rather than a check for any particular host, because the
+// requirement is "somewhere writable", not "are we on Vercel".
+$compiled = getenv('VIEW_CACHE_PATH') ?: __DIR__ . '/../storage/framework/views';
 
 $files->ensureDirectoryExists($compiled);
 
