@@ -4,6 +4,8 @@ An orders dashboard for a fictional wholesale distributor, built with Blade
 components and hand-written CSS. No Laravel, no Tailwind, no build step, and no
 JavaScript.
 
+**Live: <https://orders-dashboard-blade.vercel.app>**
+
 It exists to show how I structure templates and how I handle styling, so both
 are meant to be read, not just run. The two files worth opening first are
 [`public/index.php`](public/index.php), which wires Blade up by hand, and
@@ -123,33 +125,40 @@ here is links and a GET form, which is what it should have been anyway.
 - **There is no order detail view**, so an order number links to that order
   filtered rather than to a route that would 404. Every link here goes somewhere
   real.
-- **`composer install` pulls roughly twenty packages.** `illuminate/view` has
-  real transitive dependencies — `symfony/finder`, `doctrine/inflector`,
-  `nesbot/carbon` among them. This is not a "zero dependency" project and I am
-  not going to describe it as one.
+- **`composer install` pulls 27 packages.** `illuminate/view` has real
+  transitive dependencies — `symfony/finder`, `nesbot/carbon`,
+  `symfony/translation` among them. This is not a "zero dependency" project and
+  I am not going to describe it as one.
+- **`api/index.php` and `vercel.json` are deployment scaffolding**, not part of
+  the sample. Delete both and the local app is unchanged. The only concession in
+  the app itself is that the Blade cache directory reads `VIEW_CACHE_PATH`,
+  because serverless filesystems are read-only outside `/tmp`.
 
 ## How this was checked
 
-Each of these is a thing done, not a compliance claim — and each takes under a
-minute to repeat.
+Verified, each repeatable in under a minute:
 
 - `composer test` — 17 assertions over the status mapping and the three metric
-  definitions, including that the README's empty-state URL genuinely returns
-  nothing.
-- Tabbed the page from the address bar: skip link first, visible focus ring on
-  every control, nothing focusable that is not a control.
-- Loaded it with JavaScript disabled and used every filter, sort, page, theme
-  and density control.
-- Switched OS appearance with the theme on Auto, then overrode each way, and
-  checked that the scrollbar and text caret follow the theme rather than staying
-  light at the edges.
-- Resized continuously from 1600px to 320px and watched each column drop at its
-  stated breakpoint.
+  definitions, including that the empty-state URL above genuinely returns
+  nothing, and that `?status=cancelled` totals net zero.
+- Eleven routes return 200 with **zero** PHP warnings, notices or deprecations
+  on 8.5, including deliberately hostile input (`?status=bogus&sort=bogus&page=-5`).
+- Output escaping: `?q=<script>alert(1)</script>` renders escaped, with zero raw
+  `<script>` tags in the response.
+- The footer total is byte-identical to the Revenue card with no filter applied,
+  and `?status=cancelled` correctly reads *3 orders · net $0.00*.
+- `aria-sort` appears on exactly one `<th>` and is never `"none"`.
+- Sorting is correct in both directions including negative totals, and diacritic
+  folding files *Tomás Ferreira* under T rather than after Z.
+- Pagination gives 20 / 20 / 4 rows, clamps `?page=999` to 41–44, and renders
+  Previous as a non-focusable `<span>` on page 1.
+- Rendered and inspected at 1440×900 in both themes.
 
-Still unverified, and I would rather say so than imply otherwise: Windows High
-Contrast (the `forced-colors` block is written but I have no Windows machine
-here), and a real screen-reader pass beyond checking the markup the table
-announces from.
+**Not verified, and I would rather say so than imply otherwise:** a hand pass of
+keyboard tab order, a real screen reader, Windows High Contrast (the
+`forced-colors` block is written but I have no Windows machine), zoom levels
+above 100%, and continuous resize across the breakpoints. The markup is built
+for all of these; none of them has been watched with human eyes.
 
 ## Fit
 
