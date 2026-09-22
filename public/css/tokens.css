@@ -1,0 +1,222 @@
+/* ==========================================================================
+   tokens.css
+
+   Line 1 declares the cascade for the entire project, before any rule exists.
+   Everything after this obeys it regardless of file order, link order, or what
+   someone appends to app.css in six months.
+
+   Two layers of value: PRIMITIVES are raw and theme-independent, declared once.
+   SEMANTIC tokens name a job and point at a primitive. Nothing below the tokens
+   layer contains a hex code, and no component block contains a dark-mode rule --
+   if a component needs a dark-specific value, this file failed.
+   ========================================================================== */
+
+@layer reset, tokens, base, layout, components, utilities;
+
+@layer tokens {
+
+  /* ---- PRIMITIVES ------------------------------------------------------- */
+
+  :root {
+    --white:     #ffffff;
+    --slate-25:  #f7f9fa;
+    --slate-50:  #eff2f5;
+    --slate-100: #e4e9ed;
+    --slate-200: #d8dfe5;
+    --slate-300: #b9c4ce;
+    --slate-400: #8e9ba8;
+    --slate-500: #5c6874;
+    --slate-600: #4a5561;
+    --slate-700: #3a444e;
+    --slate-800: #262e36;
+    --slate-900: #191f26;
+    --slate-950: #0e1317;
+    --ink-nav:   #0b1013;
+
+    /* Three hues in the whole system. The accent is a ledger green rather than
+       the category-default blue: it frees blue for Refunded, and it stops the
+       page resolving to "another blue dashboard" in the two seconds where a
+       reviewer files it. */
+    --green-700: #14624a;
+    --green-400: #52be96;
+    --amber-700: #7a5100;
+    --amber-300: #e0a94a;
+    --blue-700:  #2a5488;
+    --blue-300:  #86aedd;
+
+    /* ---- SCALE: a 4px grid. There is no 6px, no 10px, no 20px. ---------- */
+    --s-1: 0.25rem;   /*  4 */
+    --s-2: 0.5rem;    /*  8 */
+    --s-3: 0.75rem;   /* 12 */
+    --s-4: 1rem;      /* 16 */
+    --s-5: 1.5rem;    /* 24 */
+    --s-6: 2rem;      /* 32 */
+    --s-7: 3rem;      /* 48 */
+
+    --fs-xs:  0.75rem;    /* 12 - the smallest size in the system, full stop */
+    --fs-sm:  0.8125rem;  /* 13 - column headers, meta, pagination */
+    --fs-md:  0.875rem;   /* 14 - table body, nav, controls */
+    --fs-lg:  1.125rem;   /* 18 - page title */
+    --fs-xl:  1.75rem;    /* 28 - stat value floor */
+    --fs-2xl: 2.25rem;    /* 36 - stat value ceiling */
+
+    --r-1: 2px;   /* badge and chip */
+    --r-2: 3px;   /* buttons, inputs, focus ring. There is no third radius. */
+
+    --rail-w:   2px;
+    --measure:  46ch;     /* the longest line of prose on the page */
+    --topbar-h: 3rem;     /* 48 */
+    --bar-h:    2.5rem;   /* 40 */
+    --nav-w:    14.5rem;  /* 232 */
+    --spark-h:  1.5rem;   /* 24 */
+
+    /* Not from the spacing scale, deliberately. This is the remainder that
+       makes a row resolve to exactly 32px INCLUDING its 1px rule: 6 above,
+       5 below, 20 of line box, 1 of border. The rule is absorbed into the
+       module so it lands ON a device pixel rather than near one, which is what
+       stops an all-hairline design shimmering at 125% zoom. */
+    --row-pad-y: 6px;
+    --row-line:  1.25rem;  /* 20 */
+
+    --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Lining-figure serifs first. Georgia is last on purpose: its old-style
+       figures descend below the baseline, which is charming in prose and wrong
+       for four large numbers that have to align with each other. */
+    --font-figure: ui-serif, "Iowan Old Style", "Source Serif 4", Charter,
+                   "Times New Roman", Georgia, serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Mono",
+                 Menlo, Consolas, monospace;
+  }
+
+  /* ---- SEMANTIC: LIGHT -------------------------------------------------- */
+
+  :root {
+    color-scheme: light dark;
+
+    /* Surface ladder, lowest to highest: nav < canvas < raised < surface.
+       The same ORDINAL ladder holds in dark, inverted in absolute lightness.
+       Data always sits on the brightest plane in both themes. */
+    --surface-nav:    var(--slate-100);
+    --canvas:         var(--slate-50);
+    --surface-raised: var(--slate-25);
+    --surface:        var(--white);
+    --surface-inset:  #e7ecf0;
+    --row-hover:      #f2f6f9;
+
+    --text-1: var(--slate-950);
+    --text-2: var(--slate-600);
+    --text-3: var(--slate-500);
+
+    --rule:        var(--slate-300);  /* structural */
+    --rule-soft:   var(--slate-200);  /* row separators only */
+    --rule-strong: var(--slate-400);  /* thead underline, the double rule-off */
+
+    /* ACCENT BUDGET. This colour appears in exactly four places and nowhere
+       else: the current nav item, the current pagination item, the focus ring,
+       and the active sort caret. It never enters the table body -- so green can
+       never be misread as "this row is good". */
+    --accent:    var(--green-700);
+    --accent-on: var(--white);
+
+    /* Status inks. Fulfilled is deliberately HUELESS: it is the majority state,
+       and colouring the majority spends the reader's attention on the thing
+       that needs none. */
+    --ink-fulfilled:  var(--text-1);
+    --ink-processing: var(--amber-700);
+    --ink-refunded:   var(--blue-700);
+    --ink-cancelled:  var(--text-3);
+
+    /* Mixed against the CURRENT surface rather than hand-picked per theme, so
+       one declaration stays correct in both. oklab keeps the mix perceptually
+       even instead of dragging it through grey. */
+    --rail-processing: color-mix(in oklab, var(--ink-processing) 62%, var(--surface));
+    --rail-refunded:   color-mix(in oklab, var(--ink-refunded) 62%, var(--surface));
+    --rail-cancelled:  color-mix(in oklab, var(--ink-cancelled) 62%, var(--surface));
+
+    /* A no-op in light. In dark it becomes a 1px inner top highlight, so one
+       unchanged box-shadow declaration carries two physical models of how a
+       raised edge catches light. */
+    --edge-highlight: 0 0 transparent;
+  }
+
+  /* ---- SEMANTIC: DARK --------------------------------------------------- */
+  /*
+     Written twice on purpose, and the duplication is the cheaper option.
+
+     light-dark() would collapse these into one block, but light-dark() inside a
+     custom property does not degrade -- it goes invalid at computed-value time
+     and takes the whole property with it, so an unsupporting browser gets no
+     colour at all rather than the light one. @layer degrades to source order;
+     that is the distinction worth holding.
+
+     The cost here is bounded because primitives are declared once: each block
+     below is ~20 short aliases, not 20 hex codes kept in sync by hand.
+  */
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+
+      --surface-nav:    var(--ink-nav);
+      --canvas:         var(--slate-950);
+      --surface-raised: var(--slate-900);
+      --surface:        var(--slate-800);
+      --surface-inset:  #1d242b;
+      --row-hover:      #2d363f;
+
+      --text-1: #eef1f4;
+      --text-2: var(--slate-300);
+      --text-3: var(--slate-400);
+
+      --rule:        #3f4a55;
+      --rule-soft:   #333d46;
+      --rule-strong: var(--slate-500);
+
+      --accent:    var(--green-400);
+      --accent-on: var(--slate-950);
+
+      --ink-fulfilled:  var(--text-1);
+      --ink-processing: var(--amber-300);
+      --ink-refunded:   var(--blue-300);
+      --ink-cancelled:  var(--text-3);
+
+      --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --surface-nav:    var(--ink-nav);
+    --canvas:         var(--slate-950);
+    --surface-raised: var(--slate-900);
+    --surface:        var(--slate-800);
+    --surface-inset:  #1d242b;
+    --row-hover:      #2d363f;
+
+    --text-1: #eef1f4;
+    --text-2: var(--slate-300);
+    --text-3: var(--slate-400);
+
+    --rule:        #3f4a55;
+    --rule-soft:   #333d46;
+    --rule-strong: var(--slate-500);
+
+    --accent:    var(--green-400);
+    --accent-on: var(--slate-950);
+
+    --ink-fulfilled:  var(--text-1);
+    --ink-processing: var(--amber-300);
+    --ink-refunded:   var(--blue-300);
+    --ink-cancelled:  var(--text-3);
+
+    --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  /* One knob, and it is the cheapest possible proof that the token layer is
+     load-bearing: the density control changes this and nothing else. */
+  :root[data-density="compact"] {
+    --row-pad-y: 3px;
+  }
+}

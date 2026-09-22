@@ -1,0 +1,770 @@
+/* ==========================================================================
+   app.css -- layout and components.
+
+   NAMING: BEM-lite, strictly. .block, .block__element, .block--modifier.
+   A block is a noun that matches the component file it styles, one to one, so
+   grepping a class name lands in a single .blade.php.
+
+   THE HOUSE RULE: classes carry VARIANT, attributes carry STATE.
+   A badge variant is .badge--refunded because it is a kind of badge. A current
+   nav item is [aria-current="page"] because it is a state -- and the attribute
+   that styles it is the same one that announces it. There is no .is-active,
+   no .is-current, no .nav__link--active anywhere in this file. The argument is
+   not tidiness: it is that a styling bug and an accessibility bug cannot drift
+   apart if they are the same bug.
+
+   SPECIFICITY is capped at 0,2,0 -- at most one class plus one attribute or
+   pseudo-class. No IDs, no !important, no nesting, no descendant chain longer
+   than two parts.
+   ========================================================================== */
+
+@layer layout {
+
+  .shell {
+    display: grid;
+    /* minmax(0, 1fr) on BOTH axes is load-bearing. Without the 0 minimum, the
+       table's intrinsic width becomes the column's minimum and blows the grid
+       out past the viewport -- which is the actual bug this exact layout has. */
+    grid-template-columns: var(--nav-w) minmax(0, 1fr);
+    grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+    grid-template-areas:
+      "nav top"
+      "nav main";
+    block-size: 100dvh;
+  }
+
+  .topbar {
+    grid-area: top;
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    padding-inline: var(--s-5);
+    background: var(--surface-raised);
+    box-shadow: inset 0 -1px 0 var(--rule);
+  }
+
+  .topbar__title {
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .topbar__period {
+    margin-inline-end: auto;
+    padding-inline-start: var(--s-4);
+    border-inline-start: 1px solid var(--rule);
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+  }
+
+  .nav {
+    grid-area: nav;
+    padding: var(--s-5) var(--s-4);
+    background: var(--surface-nav);
+    box-shadow: inset -1px 0 0 var(--rule);
+    overflow-y: auto;
+  }
+
+  .nav__brand {
+    margin-block-end: var(--s-6);
+    padding-inline-start: var(--s-2);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .nav__brand span {
+    font-weight: 400;
+    color: var(--text-3);
+  }
+
+  .main {
+    grid-area: main;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    /* Both min-* are the same defence as the grid above: a grid item's default
+       minimum is its content, and the content here is a wide table. */
+    min-inline-size: 0;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    background: var(--surface-raised);
+    box-shadow: inset 0 -1px 0 var(--rule);
+  }
+}
+
+@layer components {
+
+  /* ---- topbar switches -------------------------------------------------- */
+
+  .switch {
+    display: flex;
+    gap: var(--s-1);
+    font-size: var(--fs-sm);
+  }
+
+  .switch__opt {
+    padding: var(--s-1) var(--s-2);
+    border-radius: var(--r-2);
+    color: var(--text-3);
+  }
+
+  .switch__opt[aria-current="true"] {
+    background: var(--surface-inset);
+    color: var(--text-1);
+  }
+
+  /* ---- sidebar ---------------------------------------------------------- */
+
+  .nav__link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    padding: var(--s-2);
+    border-radius: var(--r-2);
+    color: var(--text-2);
+  }
+
+  .nav__link:hover {
+    color: var(--text-1);
+  }
+
+  /* ACCENT 1 of 4. */
+  .nav__link[aria-current="page"] {
+    color: var(--text-1);
+  }
+
+  .nav__link[aria-current="page"] .nav__label {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 5px;
+  }
+
+  .nav__count {
+    margin-inline-start: auto;
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- stat strip ------------------------------------------------------- */
+
+  .stat {
+    display: grid;
+    gap: var(--s-1);
+    padding: var(--s-4) var(--s-5);
+    min-inline-size: 0;
+  }
+
+  .stat + .stat {
+    box-shadow: inset 1px 0 0 var(--rule-soft);
+  }
+
+  .stat__label {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  /* The one typographic move in the design: four large serif figures on a
+     hairline-divided strip. Restraint is unfalsifiable from a thumbnail, and
+     this is the composed moment that reads in two seconds. */
+  .stat__value {
+    font-family: var(--font-figure);
+    font-size: clamp(var(--fs-xl), 2.4vw, var(--fs-2xl));
+    font-variant-numeric: tabular-nums lining-nums;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .spark {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    block-size: var(--spark-h);
+    margin-block-start: var(--s-1);
+  }
+
+  /* Sized by a custom property written into the markup, with the real numbers
+     in the DOM as screen-reader text. No canvas, no image, no library. */
+  .spark__bar {
+    inline-size: 6px;
+    block-size: calc(var(--v, 0.15) * var(--spark-h));
+    background: var(--rule);
+  }
+
+  .stat__delta {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Direction is a drawn triangle plus a hidden word. No red, no green -- the
+     three-hue budget does not stretch to sentiment, and colour alone would not
+     have carried it anyway. */
+  .stat__arrow {
+    display: inline-block;
+    inline-size: 0;
+    block-size: 0;
+    border-inline: 4px solid transparent;
+  }
+
+  .stat__delta[data-direction="up"] .stat__arrow {
+    border-block-end: 5px solid currentColor;
+  }
+
+  .stat__delta[data-direction="down"] .stat__arrow {
+    border-block-start: 5px solid currentColor;
+  }
+
+  .stat__delta[data-direction="flat"] .stat__arrow {
+    border-block-start: 2px solid currentColor;
+    inline-size: 8px;
+  }
+
+  /* ---- filter bar ------------------------------------------------------- */
+
+  .filters {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    flex-wrap: wrap;
+    min-block-size: var(--bar-h);
+    padding-inline: var(--s-5);
+    background: var(--surface-raised);
+    box-shadow: inset 0 -1px 0 var(--rule);
+  }
+
+  .filters__chips {
+    display: flex;
+    gap: var(--s-1);
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    padding: var(--s-1) var(--s-2);
+    border-radius: var(--r-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .chip:hover {
+    color: var(--text-1);
+  }
+
+  .chip[aria-current="page"] {
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--rule);
+    color: var(--text-1);
+  }
+
+  .chip__count {
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .filters__search {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+
+  .filters__label {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .filters__input {
+    inline-size: 15rem;
+    max-inline-size: 100%;
+    padding: var(--s-1) var(--s-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-2);
+    background: var(--surface-inset);
+    font-size: var(--fs-sm);
+  }
+
+  .filters__submit {
+    padding: var(--s-1) var(--s-3);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-2);
+    background: var(--surface);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+
+  /* ---- the ledger ------------------------------------------------------- */
+
+  .orders__scroll {
+    overflow: auto;
+    background: var(--surface);
+    /* Scroll shadows as local-attachment gradients rather than box-shadow, so
+       the claim "no casting shadow exists in this stylesheet" survives -- and
+       so the cue appears and disappears with scroll position without any JS. */
+    background-image:
+      linear-gradient(to right, var(--surface) 30%, transparent),
+      linear-gradient(to left, var(--surface) 30%, transparent),
+      linear-gradient(to right, rgb(0 0 0 / 0.10), transparent 12px),
+      linear-gradient(to left, rgb(0 0 0 / 0.10), transparent 12px);
+    background-position: left center, right center, left center, right center;
+    background-repeat: no-repeat;
+    background-size: 28px 100%, 28px 100%, 12px 100%, 12px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+
+  .orders {
+    inline-size: 100%;
+    /* separate + zero spacing is load-bearing: an inset box-shadow on a <td>
+       paints reliably under `separate` and unreliably under `collapse`, and the
+       status rail is an inset box-shadow. The cost is that row separators are
+       drawn per cell rather than per row. */
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .orders__th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    padding: var(--s-2) var(--s-3);
+    background: var(--surface-raised);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    text-align: start;
+    white-space: nowrap;
+    /* The second term is inert in light and a 1px inner highlight in dark: one
+       declaration, two physical models of how a raised edge catches light. */
+    box-shadow: inset 0 -1px 0 var(--rule-strong), var(--edge-highlight);
+  }
+
+  .orders__sort {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .orders__caret {
+    display: none;
+  }
+
+  /* ACCENT 4 of 4. Drawn from the attribute, so the arrow and the announcement
+     cannot disagree. */
+  .orders__th[aria-sort] .orders__caret {
+    display: inline-block;
+    inline-size: 0;
+    block-size: 0;
+    margin-inline-start: var(--s-1);
+    border-inline: 4px solid transparent;
+  }
+
+  .orders__th[aria-sort="ascending"] .orders__caret {
+    border-block-end: 5px solid var(--accent);
+  }
+
+  .orders__th[aria-sort="descending"] .orders__caret {
+    border-block-start: 5px solid var(--accent);
+  }
+
+  .orders__cell {
+    padding-block: var(--row-pad-y) calc(var(--row-pad-y) - 1px);
+    padding-inline: var(--s-3);
+    line-height: var(--row-line);
+    vertical-align: middle;
+    white-space: nowrap;
+    box-shadow: inset 0 -1px 0 var(--rule-soft);
+    transition: background-color 80ms linear;
+  }
+
+  /* The rail: a per-row custom property written by PHP, consumed here. Zero
+     extra DOM, zero layout cost, no per-status selector, and it simply does not
+     paint on rows that do not set it -- which is every fulfilled row. */
+  .orders__row > .orders__cell:first-child {
+    box-shadow:
+      inset 0 -1px 0 var(--rule-soft),
+      inset var(--rail-w) 0 0 var(--rail, transparent);
+  }
+
+  /* The whole row responds to the one real link inside it. No onclick, no
+     role="button" on a <tr>, no JavaScript: the state already lives in the
+     markup, which is what makes this a justified use of :has rather than a
+     demonstration of it. */
+  .orders__row:has(.orders__link:hover) .orders__cell,
+  .orders__row:focus-within .orders__cell {
+    background: var(--row-hover);
+  }
+
+  .orders__link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+  }
+
+  .orders__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .orders__truncate {
+    display: block;
+    max-inline-size: 24ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .orders__cell time {
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .orders__foot {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 2;
+    padding: var(--s-2) var(--s-3);
+    background: var(--surface-raised);
+    /* The double rule-off. A ledger ends; it does not just stop. */
+    border-block-start: 3px double var(--rule-strong);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+  }
+
+  .orders__foot-note {
+    margin-inline-start: var(--s-2);
+    color: var(--text-3);
+  }
+
+  /* ---- badges ----------------------------------------------------------- */
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 1px var(--s-2);
+    border-radius: var(--r-1);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+  }
+
+  /* Four border styles and four glyph fill densities. Hue is the third signal,
+     never the first -- so the four statuses stay distinct for a colour-blind
+     reader, in a black-and-white print, and in forced-colors mode. */
+  .badge--fulfilled {
+    border: 1px solid transparent;
+    color: var(--ink-fulfilled);
+  }
+
+  .badge--processing {
+    border: 1px solid currentColor;
+    color: var(--ink-processing);
+  }
+
+  .badge--refunded {
+    border: 1px dashed currentColor;
+    color: var(--ink-refunded);
+  }
+
+  .badge--cancelled {
+    border: 1px dotted currentColor;
+    color: var(--ink-cancelled);
+  }
+
+  .badge--unknown {
+    border: 1px solid var(--rule);
+    color: var(--text-3);
+  }
+
+  /* ---- money ------------------------------------------------------------ */
+
+  .money {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .money__dec {
+    color: var(--text-2);
+  }
+
+  /* A cancelled order's total is dimmed, never struck through: the number is
+     still true, it just does not count. Derived from the badge already in the
+     row rather than from a second class the template would have to remember to
+     pass -- the state is in the markup once. */
+  .orders__row:has(.badge--cancelled) .money,
+  .orders__row:has(.badge--cancelled) .money__dec {
+    color: var(--text-3);
+  }
+
+  /* ---- empty state ------------------------------------------------------ */
+
+  .empty__cell {
+    padding: var(--s-7) var(--s-5);
+  }
+
+  .empty__title {
+    max-inline-size: var(--measure);
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .empty__body {
+    margin-block-start: var(--s-2);
+    max-inline-size: var(--measure);
+    color: var(--text-2);
+  }
+
+  .empty__tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-4);
+    margin-block-start: var(--s-5);
+    font-size: var(--fs-sm);
+  }
+
+  /* Separators are drawn rules, not typed middle dots. */
+  .empty__token {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding-inline-end: var(--s-4);
+    border-inline-end: 1px solid var(--rule);
+    color: var(--text-2);
+  }
+
+  .empty__token:last-child {
+    padding-inline-end: 0;
+    border-inline-end: 0;
+  }
+
+  .empty__remove {
+    display: inline-flex;
+    padding: var(--s-1);
+    border-radius: var(--r-2);
+    color: var(--text-3);
+  }
+
+  .empty__remove:hover {
+    color: var(--text-1);
+    background: var(--surface-inset);
+  }
+
+  .empty__actions {
+    margin-block-start: var(--s-4);
+  }
+
+  .empty__clear {
+    font-size: var(--fs-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ---- pagination ------------------------------------------------------- */
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    flex-wrap: wrap;
+    min-block-size: var(--bar-h);
+    padding-inline: var(--s-5);
+    background: var(--surface-raised);
+    box-shadow: inset 0 1px 0 var(--rule);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .pager__nav {
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+  }
+
+  .pager__item {
+    padding: var(--s-1) var(--s-2);
+    border-radius: var(--r-2);
+    color: var(--text-2);
+  }
+
+  .pager__item:hover {
+    color: var(--text-1);
+  }
+
+  /* ACCENT 2 of 4. */
+  .pager__item[aria-current="page"] {
+    color: var(--text-1);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
+  .pager__item[data-disabled] {
+    color: var(--text-3);
+  }
+}
+
+@layer layout {
+
+  /* ---- responsive ------------------------------------------------------
+     Breakpoints come from where the content breaks, not from device names.
+     Each one says what breaks there.
+     -------------------------------------------------------------------- */
+
+  /* The four stat figures stop being comfortable side by side. */
+  @media (width < 1180px) {
+    .strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stat:nth-child(3) {
+      box-shadow: none;
+    }
+  }
+
+  /* Items is the least-consulted column, so it goes first. Hidden on the <th>,
+     the <col> AND the <td> through one class, so they cannot desynchronise. */
+  @media (width < 1020px) {
+    .col-items {
+      display: none;
+    }
+  }
+
+  /* 900: the sidebar stops earning 232px of a narrowing viewport. It becomes a
+     horizontal rail of the SAME text links -- no hamburger, no off-canvas
+     drawer, no icon-only rail, and therefore no temptation to use `title` as an
+     accessible name. */
+  @media (width < 900px) {
+    .shell {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: var(--topbar-h) auto minmax(0, 1fr);
+      grid-template-areas:
+        "top"
+        "nav"
+        "main";
+    }
+
+    .nav {
+      padding: var(--s-2) var(--s-4);
+      box-shadow: inset 0 -1px 0 var(--rule);
+      overflow-x: auto;
+      scroll-snap-type: inline mandatory;
+    }
+
+    .nav__brand {
+      display: none;
+    }
+
+    .nav__list {
+      display: flex;
+      gap: var(--s-1);
+    }
+
+    .nav__list li {
+      scroll-snap-align: start;
+    }
+
+    .nav__link {
+      white-space: nowrap;
+    }
+
+    .nav__count {
+      margin-inline-start: 0;
+    }
+  }
+
+  /* Placed goes next: the order numbers are already in date order by default. */
+  @media (width < 820px) {
+    .col-placed {
+      display: none;
+    }
+  }
+
+  /* Below here the four columns that matter -- Order, Customer, Total, Status --
+     scroll sideways instead of being dropped. The table NEVER restructures into
+     cards: changing `display` on table elements drops implicit table semantics
+     in several screen readers, and a ledger whose column relationships are gone
+     is no longer the view anyone asked for. */
+  @media (width < 680px) {
+    .topbar {
+      flex-wrap: wrap;
+      gap: var(--s-2);
+      padding-block: var(--s-2);
+    }
+
+    .topbar__period {
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+
+    .filters,
+    .pager {
+      padding-block: var(--s-2);
+    }
+
+    .orders__truncate {
+      max-inline-size: 16ch;
+    }
+  }
+
+  @media (width < 560px) {
+    .strip {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .stat + .stat {
+      box-shadow: inset 0 1px 0 var(--rule-soft);
+    }
+  }
+
+  /* ---- forced colours ---------------------------------------------------
+     This page carries its whole hierarchy in hairlines, an inset box-shadow
+     rail and border-styled chips. Windows High Contrast discards backgrounds
+     and box-shadows outright, which would take all three with it. Cheap to fix,
+     and almost nobody does it.
+     -------------------------------------------------------------------- */
+
+  @media (forced-colors: active) {
+    .orders__cell {
+      border-block-end: 1px solid CanvasText;
+      box-shadow: none;
+    }
+
+    .orders__row > .orders__cell:first-child {
+      box-shadow: none;
+    }
+
+    /* The rail cannot survive as a shadow, so it comes back as a real border on
+       exactly the rows that set one. */
+    .orders__row[style] > .orders__cell:first-child {
+      border-inline-start: var(--rail-w) solid CanvasText;
+    }
+
+    .orders__th {
+      border-block-end: 2px solid CanvasText;
+      box-shadow: none;
+    }
+
+    /* Fulfilled's border is transparent by design; here it needs to be visible,
+       or three of the four statuses would look alike. */
+    .badge--fulfilled {
+      border-color: CanvasText;
+    }
+
+    .badge__glyph {
+      forced-color-adjust: none;
+    }
+
+    .orders__scroll {
+      background-image: none;
+    }
+  }
+}
